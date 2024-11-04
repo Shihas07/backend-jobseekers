@@ -482,6 +482,48 @@ const getAppliedJob = async (req, res) => {
   }
 };
 
+// const FindAppliedJobStatus=async(req,res)=>{
+     
+//       const {id,jobid}=req.params;
+       
+//           const excictApplication= await Applicant.find({userId:id}&&{JobId:jobid})
+//           console.log(excictApplication)
+
+//             if(!(id&&jobid)){
+
+//                 res.status(400),json({message:"cant find this id"})
+//             }
+
+//              res.status(200).json(excictApplication)
+// }
+
+
+const FindAppliedJobStatus = async (req, res) => {
+  const { id, jobid } = req.params;
+
+  // Check if id and jobid are provided
+  if (!(id && jobid)) {
+    return res.status(400).json({ message: "Both id and jobid are required" });
+  }
+
+  try {
+    
+    const existingApplication= await Applicant.find({userId:id}&&{JobId:jobid})
+    console.log(existingApplication);
+
+   
+    if (existingApplication.length === 0) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    
+    res.status(200).json(existingApplication);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 
 module.exports = {
@@ -499,5 +541,7 @@ module.exports = {
   profileDetails,
   addprofileDetails,
   applyJob,
-  getAppliedJob
+  getAppliedJob,
+  FindAppliedJobStatus
+  
 };

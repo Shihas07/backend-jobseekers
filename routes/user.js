@@ -20,7 +20,9 @@ const express=require("express")
  router.post("/userDetails", uploadStorage.single('Resume'), UserController.addprofileDetails);
  router.post("/applyJob/:id",UserController.applyJob)
  router.get("/getAppliedJob/:id",UserController.getAppliedJob)
-      
+ router.get('/applicationDetails/:id/:jobid',UserController.FindAppliedJobStatus)
+
+        
 
 
   module.exports=router;
