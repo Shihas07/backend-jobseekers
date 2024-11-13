@@ -8,13 +8,13 @@ const bodyParser = require("body-parser");
 const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 // const Admin=require("../model/admin")
-const Applicant=require("../model/application")
+const Applicant = require("../model/application");
 
 const cookieParser = require("cookie-parser");
 const Job = require("../model/Job");
 const Category = require("../model/Category");
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 app.use(bodyParser.json());
 
 app.use(cookieParser());
@@ -72,7 +72,7 @@ const login = async (req, res) => {
       { id: user.id, name: user.name },
       process.env.REFRESH_TOKEN_SECRET,
       {
-        expiresIn: "1d", 
+        expiresIn: "1d",
       }
     );
 
@@ -348,10 +348,18 @@ const profileDetails = async (req, res) => {
   }
 };
 
-
 const addprofileDetails = async (req, res) => {
   try {
-    const { name, email, phone, password, skills, experience, description,location } = req.body;
+    const {
+      name,
+      email,
+      phone,
+      password,
+      skills,
+      experience,
+      description,
+      location,
+    } = req.body;
     const Resume = req.file;
 
     if (!Resume) {
@@ -370,7 +378,6 @@ const addprofileDetails = async (req, res) => {
       existingUser.skills = skills ? skills.split(",") : [];
       existingUser.experience = experience;
       existingUser.location = location;
-      
 
       const updatedUser = await existingUser.save();
 
@@ -404,22 +411,28 @@ const addprofileDetails = async (req, res) => {
   }
 };
 
-
 const applyJob = async (req, res) => {
   try {
-    const { _id, name, email, phone, experience, resumePath, skills, location, coverLetter } = req.body.profile;
-    const {id} = req.params; // assuming jobId is passed as a URL parameter
-    const Resume=req.file
+    const {
+      _id,
+      name,
+      email,
+      phone,
+      experience,
+      resumePath,
+      skills,
+      location,
+      coverLetter,
+    } = req.body.profile;
+    const { id } = req.params; // assuming jobId is passed as a URL parameter
+    const Resume = req.file;
 
-       
-      console.log("req.body",req.body)
-      console.log("req.body",req.file)
+    console.log("req.body", req.body);
+    console.log("req.body", req.file);
 
-           
-       
     // Check if the job exists
     const job = await Job.findById(id);
-    console.log("job",job)
+    console.log("job", job);
     if (!job) {
       return res.status(404).json({ message: "Job not found" });
     }
@@ -429,17 +442,17 @@ const applyJob = async (req, res) => {
     if (!applicant) {
       // Create a new applicant if not exists
       applicant = new Applicant({
-        userId:_id,
-        EmployerId:job.employerId,
-        JobId:id,
-        name:name,
-        email:email,
-        phone:phone,
-        experience:experience,
-        resumePath:resumePath,
-        skills:skills,
-        location:location,
-        coverLetter:coverLetter,
+        userId: _id,
+        EmployerId: job.employerId,
+        JobId: id,
+        name: name,
+        email: email,
+        phone: phone,
+        experience: experience,
+        resumePath: resumePath,
+        skills: skills,
+        location: location,
+        coverLetter: coverLetter,
         applications: [{ id }],
       });
     } else {
@@ -447,27 +460,33 @@ const applyJob = async (req, res) => {
       applicant.applications.push({ id });
     }
 
-
-     console.log(applicant)
+    console.log(applicant);
     await applicant.save();
 
-    res.status(200).json({ message: "Application submitted successfully", applicant });
+    res
+      .status(200)
+      .json({ message: "Application submitted successfully", applicant });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error submitting application" });
   }
 };
 
-
 const getAppliedJob = async (req, res) => {
   try {
     const { id } = req.params; // User ID from request params
 
     // Find all applications by the user and retrieve only the JobId field
-    const applications = await Applicant.find({ userId: id }).select("JobId -_id");
+    const applications = await Applicant.find({ userId: id }).select(
+      "JobId -_id"
+    );
+
+    // console.log(applications);
 
     if (!applications.length) {
-      return res.status(404).json({ message: "No applications found for this user." });
+      return res
+        .status(404)
+        .json({ message: "No applications found for this user." });
     }
 
     // Map to extract only JobIds
@@ -478,14 +497,16 @@ const getAppliedJob = async (req, res) => {
     res.status(200).json({ jobIds });
   } catch (error) {
     console.error("Error fetching applied jobs:", error);
-    res.status(500).json({ message: "An error occurred while fetching applied jobs." });
+    res
+      .status(500)
+      .json({ message: "An error occurred while fetching applied jobs." });
   }
 };
 
 // const FindAppliedJobStatus=async(req,res)=>{
-     
+
 //       const {id,jobid}=req.params;
-       
+
 //           const excictApplication= await Applicant.find({userId:id}&&{JobId:jobid})
 //           console.log(excictApplication)
 
@@ -497,7 +518,6 @@ const getAppliedJob = async (req, res) => {
 //              res.status(200).json(excictApplication)
 // }
 
-
 const FindAppliedJobStatus = async (req, res) => {
   const { id, jobid } = req.params;
 
@@ -507,16 +527,15 @@ const FindAppliedJobStatus = async (req, res) => {
   }
 
   try {
-    
-    const existingApplication= await Applicant.find({userId:id}&&{JobId:jobid})
-    console.log(existingApplication);
+    const existingApplication = await Applicant.find(
+      { userId: id } && { JobId: jobid }
+    );
+    // console.log(existingApplication);
 
-   
     if (existingApplication.length === 0) {
       return res.status(404).json({ message: "Application not found" });
     }
 
-    
     res.status(200).json(existingApplication);
   } catch (error) {
     console.error(error);
@@ -524,7 +543,32 @@ const FindAppliedJobStatus = async (req, res) => {
   }
 };
 
+const fndAppliedJbs = async (req, res) => {
+  try {
+    const { id } = req.params;
 
+    const excict = await Applicant.find({ userId: { $in: id } }, 'JobId status date');
+    const jobid = excict.map((a, b) => a.JobId);
+
+    const jobs = await Job.find({ _id: { $in: jobid } }, 'jobTitle companyName');
+
+    const Data = excict.map((app) => {
+      const job = jobs.find((j) => j._id.equals(app.JobId));
+      return {
+        JobId: app.JobId,
+        status: app.status,
+        date: app.date,
+        jobTitle: job ? job.jobTitle : null,
+        companyName: job ? job.companyName : null
+      };
+    });
+
+    return res.status(200).json({ message: "success", Data });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
 
 module.exports = {
   signup,
@@ -542,6 +586,6 @@ module.exports = {
   addprofileDetails,
   applyJob,
   getAppliedJob,
-  FindAppliedJobStatus
-  
+  FindAppliedJobStatus,
+  fndAppliedJbs,
 };

@@ -21,6 +21,7 @@ const express=require("express")
  router.post("/applyJob/:id",UserController.applyJob)
  router.get("/getAppliedJob/:id",UserController.getAppliedJob)
  router.get('/applicationDetails/:id/:jobid',UserController.FindAppliedJobStatus)
+ router.get('/appliedDetais/:id',UserController.fndAppliedJbs)
 
         
 
