@@ -15,6 +15,8 @@ router.get("/employer/fetchJob/:id", employerController.fetchJob);
 router.post("/employer/editJobPost", employerController.editJob);
 
 router.delete("/employer/delete/:id", employerController.postdelete);
+router.get("/employer/getApplicants/:id", employerController.getApplicants);
+
 
 
 

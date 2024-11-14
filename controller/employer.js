@@ -4,6 +4,7 @@ const Token = require("../model/Token");
 const Razorpay = require("razorpay");
 const Category = require("../model/Category");
 const Job = require("../model/Job");
+const Applicant = require("../model/application");
 
 const signup = async (req, res) => {
   const { email, name, phone, password } = req.body;
@@ -390,6 +391,38 @@ const postdelete = async (req, res) => {
   }
 };
 
+const getApplicants = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(id);
+
+    const excict = await Applicant.find({ EmployerId: id });
+
+    if (!excict.length) {
+      // If no applicants found, return a success response with an empty result
+      return res.status(200).json({ message: "success", result: [] });
+    }
+
+    const jobid = excict.map((a) => a.JobId);
+    const jobs = await Job.find({ _id: { $in: jobid } }, 'jobTitle companyName');
+
+    const result = excict.map((applicant) => {
+      const jobDetails = jobs.find((job) => job._id.toString() === applicant.JobId.toString());
+
+      return {
+        ...applicant.toObject(),
+        jobDetails: jobDetails ? jobDetails.toObject() : null,
+      };
+    });
+
+    console.log(result);
+    return res.status(200).json({ message: "success", result });
+  } catch (error) {
+    console.error("Error fetching applicants:", error);
+    return res.status(500).json({ message: "An error occurred while fetching applicants" });
+  }
+};
+
 
 
 
@@ -404,5 +437,6 @@ module.exports = {
   postJobData,
   fetchJob,
   editJob,
-  postdelete 
+  postdelete ,
+  getApplicants
 };
