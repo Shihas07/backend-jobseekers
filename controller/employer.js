@@ -394,7 +394,7 @@ const postdelete = async (req, res) => {
 const getApplicants = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id);
+    // console.log(id);
 
     const excict = await Applicant.find({ EmployerId: id });
 
@@ -415,13 +415,51 @@ const getApplicants = async (req, res) => {
       };
     });
 
-    console.log(result);
+    // console.log(result);
     return res.status(200).json({ message: "success", result });
   } catch (error) {
     console.error("Error fetching applicants:", error);
     return res.status(500).json({ message: "An error occurred while fetching applicants" });
   }
 };
+
+
+const statusJob=async(req,res)=>{
+    
+      const {id}= req.params
+      console.log("employerstatus",id)
+
+      const application=await Applicant.findOne({_id:id})
+      if(!application){
+         res.status(400).json({message:"cannot find the apllication"})
+      }
+
+        const update=await Applicant.findByIdAndUpdate({_id:id},{$set:{status:"viewed"}})
+
+          
+
+      console.log(update)
+
+}
+
+const notSelect=async(req,res)=>{
+    
+  const {id}= req.params
+  console.log("employerstatus",id)
+
+  const application=await Applicant.findOne({_id:id})
+  if(!application){
+     res.status(400).json({message:"cannot find the apllication"})
+  }
+
+    const updated=await Applicant.findByIdAndUpdate({_id:id},{$set:{status:"reject"}})
+
+      
+
+  console.log("updated",updated)
+
+       
+}
 
 
 
@@ -438,5 +476,7 @@ module.exports = {
   fetchJob,
   editJob,
   postdelete ,
-  getApplicants
+  getApplicants,
+  statusJob,
+  notSelect
 };
