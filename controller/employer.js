@@ -5,6 +5,8 @@ const Razorpay = require("razorpay");
 const Category = require("../model/Category");
 const Job = require("../model/Job");
 const Applicant = require("../model/application");
+const mailService = require("../services/mail");
+const mongoose=require("mongoose")
 
 const signup = async (req, res) => {
   const { email, name, phone, password } = req.body;
@@ -424,23 +426,73 @@ const getApplicants = async (req, res) => {
 };
 
 
-const statusJob=async(req,res)=>{
-    
-      const {id}= req.params
-      console.log("employerstatus",id)
+const statusJob = async (req, res) => {
+  const { id } = req.params;
+  console.log("Employer status ID:", id);
 
-      const application=await Applicant.findOne({_id:id})
-      if(!application){
-         res.status(400).json({message:"cannot find the apllication"})
-      }
+  try {
+    // Find the application by ID
+    const application = await Applicant.findOne({ _id: id });
+    if (!application) {
+      return res.status(400).json({ message: "Cannot find the application" });
+    }
 
-        const update=await Applicant.findByIdAndUpdate({_id:id},{$set:{status:"viewed"}})
+    const { JobId, email } = application;
 
-          
+    if (!mongoose.Types.ObjectId.isValid(JobId)) {
+      return res.status(400).json({ message: "Invalid JobId in application" });
+    }
 
-      console.log(update)
+    // Retrieve job details
+    const jobDetails = await Job.findOne({ _id: JobId });
+    if (!jobDetails) {
+      return res.status(404).json({ message: "Job details not found" });
+    }
 
-}
+    const { jobTitle, jobDescription, companyName } = jobDetails;
+
+    // Update application status to "viewed"
+    const updatedApplication = await Applicant.findByIdAndUpdate(
+      { _id: id },
+      { $set: { status: "viewed" } },
+      { new: true } // Return updated document
+    );
+
+    if (!updatedApplication) {
+      return res.status(400).json({ message: "Failed to update application status" });
+    }
+
+    console.log("Updated application:", updatedApplication);
+
+    // Email content
+    const subject = "Application Status Update";
+    const body = `
+      Dear Applicant,
+
+      Your application for the position of "${jobTitle}" at ${companyName} has been viewed.
+      
+      Job Description: 
+      ${jobDescription}
+
+      Thank you for applying, and we will keep you updated on further steps.
+
+      Best regards,
+      Job Seekers Team
+    `;
+
+    // Send notification email
+    await mailService(body, email, subject);
+
+    // Send success response
+    return res.status(200).json({
+      message: "Application status updated to 'viewed' and email sent successfully.",
+    });
+  } catch (error) {
+    console.error("Error in statusJob:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 
 const notSelect=async(req,res)=>{
     
@@ -452,11 +504,45 @@ const notSelect=async(req,res)=>{
      res.status(400).json({message:"cannot find the apllication"})
   }
 
+   const {JobId,email}=application
+   console.log(JobId,"id")
+
+
+if (!mongoose.Types.ObjectId.isValid(JobId)) {
+      return res.status(400).json({ message: "Invalid JobId in application" });
+    }
+
+    // Find the job details
+    const jobDetails = await Job.findOne({ _id: JobId }); // Corrected query
+    if (!jobDetails) {
+      return res.status(404).json({ message: "Job details not found" });
+    }
+
+    const { 
+      jobTitle, 
+      jobDescription, companyName } = jobDetails;
     const updated=await Applicant.findByIdAndUpdate({_id:id},{$set:{status:"reject"}})
+
+   
+    const subject = "Application Status Update";
+    const body = `
+    Dear Applicant,
+
+    Thank you for applying for the position of "${
+      jobTitle}" at ${companyName}.
+    Unfortunately, we cannot move forward with your application at this time.
+
+    Job Description: 
+    ${
+      jobDescription}
+
+    Best regards,
+    Job Seekers Team
+  `;         await    mailService(body,email,subject)
 
       
 
-  console.log("updated",updated)
+  // console.log("updated",updated)
 
        
 }
